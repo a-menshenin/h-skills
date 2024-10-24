@@ -4,41 +4,73 @@ func main() {
 
 }
 
+type LRUItem struct {
+	key int
+	value int
+	next *LRUItem
+	prev *LRUItem
+}
+
 type LRUCache struct {
-    data map[int]int
+    data map[int]*LRUItem
+	head *LRUItem
+	tail *LRUItem
 	dataMaxCap int
-	usedItemsKeys []int
+}
+
+func (l *LRUCache) AddToBegin(lruItem *LRUItem) {
+	l.head = lruItem
+	l.tail = lruItem
+}
+
+func (l *LRUCache) AddToBeginOfList(lruItem *LRUItem) {
+	lruItem.next = l.head
+	l.head.prev = lruItem
+	l.head = lruItem
+}
+
+func (l *LRUCache) MoveToBegin(lruItem *LRUItem) {
+	if lruItem.next == nil {
+		lruItem.prev.next = nil
+		l.tail = lruItem.prev
+	}
+
+	lruItem.next = l.head
+	lruItem.prev = nil
+	lruItem.next.prev = lruItem
+	
+	l.head = lruItem
+}
+
+func (l *LRUCache) DeleteItem(lruItem *LRUItem) {
+	if lruItem.next == nil {
+		l.tail = lruItem.prev
+		lruItem.prev.next = nil
+		lruItem.prev.prev = lruItem
+	} else {
+		lruItem.next.prev = lruItem.prev
+
+		if lruItem.prev == nil {
+			l.head = lruItem.next
+		} else {
+			lruItem.prev.next = lruItem.next
+		}
+	}
 }
 
 func NewLRUCache(capacity int) *LRUCache {
     return &LRUCache{
-		data: make(map[int]int, capacity),
+		data: make(map[int]*LRUItem, capacity),
 		dataMaxCap: capacity,
-		usedItemsKeys: make([]int, 0),
 	}
 }
 
 func (l *LRUCache) Get(key int) int {
-    if v, found := l.data[key]; found {
-		// usedItemKeyFound := false
-		for i, usedItemKey := range l.usedItemsKeys {
-			if usedItemKey == key {
-				part1 := l.usedItemsKeys[:i]
-				part2 := l.usedItemsKeys[i+1:]
-				l.usedItemsKeys = part1
-				l.usedItemsKeys = append(l.usedItemsKeys, part2...)
-				l.usedItemsKeys = append(l.usedItemsKeys, usedItemKey)
-				// usedItemKeyFound = true
+    if lruItem, found := l.data[key]; found {
+		l.DeleteItem(lruItem)
+		l.MoveToBegin(lruItem)
 
-				break
-			}
-		}
-
-		// if !usedItemKeyFound {
-		// 	l.usedItemsKeys = append(l.usedItemsKeys, key)
-		// }
-
-		return v
+		return lruItem.value
 	}
 
 	return -1
@@ -46,17 +78,27 @@ func (l *LRUCache) Get(key int) int {
 
 
 func (l *LRUCache) Put(key int, value int) {
-	if _, found := l.data[key]; !found {
+	if lruItem, found := l.data[key]; found {
+		lruItem.value = value
+		l.DeleteItem(lruItem)
+		l.MoveToBegin(lruItem)
+	} else {
 		if len(l.data) == l.dataMaxCap {
-			leastUsedItemKey := l.usedItemsKeys[0]
-			delete(l.data, leastUsedItemKey)
+			delete(l.data, l.tail.key)
+			l.tail.prev.next = nil
+			l.tail = l.tail.prev
+		} else {
+			newItem := &LRUItem{
+				key: key,
+				value: value,
+			}
+			if len(l.data) == 0 {
+				l.AddToBegin(newItem)
+			} else {
+				l.AddToBeginOfList(newItem)
+			}
 
-			l.usedItemsKeys = l.usedItemsKeys[1:]
+			l.data[key] = newItem
 		}
-	} else if len(l.data) == l.dataMaxCap {
-		l.usedItemsKeys = l.usedItemsKeys[1:]
 	}
-
-	l.data[key] = value
-	l.usedItemsKeys = append(l.usedItemsKeys, key)
 }
