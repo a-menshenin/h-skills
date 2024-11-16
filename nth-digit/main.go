@@ -26,7 +26,7 @@ func findNthDigit(n int) int {
 
 			fmt.Println("intVal")
 			fmt.Println(intVal)
-			fmt.Println("i2")
+			fmt.Println("i")
 			fmt.Println(i)
 			fmt.Println("j")
 			fmt.Println(j)
@@ -37,7 +37,7 @@ func findNthDigit(n int) int {
 
 			i++
 		}
-		fmt.Println("i")
+		fmt.Println("i after for")
 		fmt.Println(i)
 	}
 
