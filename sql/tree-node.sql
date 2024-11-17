@@ -1,5 +1,6 @@
 -- https://leetcode.com/problems/tree-node/description/
 
+-- Непонятно, почему на leetcode не срабатывает условие p_id = null
 select
     t.id,
     case 
