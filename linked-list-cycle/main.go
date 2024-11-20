@@ -37,27 +37,26 @@ func main() {
 	fmt.Println(res)
 }
 
+// https://leetcode.com/problems/linked-list-cycle/submissions/1458179396/
 func hasCycle(head *ListNode) bool {
-	slowPointer := head
-	fastPointer := head
-	if head == nil || fastPointer.Next == nil && slowPointer.Next == nil {
+	slow := head
+	fast := head
+	if head == nil || head.Next == nil {
 		return false
 	}
 
-	for {
-		if slowPointer == nil || fastPointer == nil {
+	for slow != nil && fast != nil{
+		slow = slow.Next
+		fast = fast.Next
+		if fast == nil {
 			return false
 		}
+		fast = fast.Next
 
-		slowPointer = slowPointer.Next
-		fastPointer = fastPointer.Next
-		if fastPointer == nil {
-			return false
-		}
-		fastPointer = fastPointer.Next
-
-		if fastPointer == slowPointer {
+		if fast == slow {
 			return true
 		}
 	}
+
+	return false
 }
